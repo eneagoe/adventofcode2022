@@ -1,19 +1,18 @@
 #!/usr/bin/env ruby -w
 
 elf = 1
-strongest = nil
 max = 0
 current = 0
 
-# first part
+elves = []
+
 File.open(ARGV[0]).readlines.each do |line|
   line.chomp!
 
   if line.empty?
-    if max < current
-      max = current
-      strongest = elf
-    end
+    max = current if max < current
+
+    elves.append(current)
 
     current = 0
     elf += 1
@@ -21,5 +20,10 @@ File.open(ARGV[0]).readlines.each do |line|
 
   current += line.to_i
 end
+elves.append(current)
 
-puts max, strongest
+# first puzzle
+puts max
+
+# second puzzle
+puts elves.sort[-3..].sum
