@@ -17,7 +17,7 @@ Node = Struct.new("Node", :name, :parent, :children, :size) do
     yield self
 
     children.each do
-      if _1[:children]
+      if _1.children
         _1.each do |c|
           yield c
         end
@@ -27,6 +27,8 @@ Node = Struct.new("Node", :name, :parent, :children, :size) do
 end
 
 LIMIT = 100000
+AVAILABLE = 70000000
+NEEDED = 30000000
 
 root = Node.new("/", nil, [], 0)
 cwd = root
@@ -37,19 +39,26 @@ File.open(ARGV[0]).readlines.each do |line|
     if $1 == "/"
       cwd = root
     elsif $1 == ".."
-      cwd = cwd[:parent]
+      cwd = cwd.parent
     else
       cwd = cwd.child($1)
     end
   elsif line =~ /^\$\s+ls\s*$/
     # pass - just listing files/directories
   elsif line =~ /^dir\s+(.*)$/
-    cwd[:children] << Node.new($1, cwd, [], 0) unless cwd.child($1)
+    cwd.children << Node.new($1, cwd, [], 0) unless cwd.child($1)
   else
     size, name = line.split(/\s+/)
-    cwd[:children] << Node.new(name, cwd, nil, size.to_i) unless cwd.child(name)
+    cwd.children << Node.new(name, cwd, nil, size.to_i) unless cwd.child(name)
   end
 end
 
 # 1st puzzle
 puts root.find_all { _1 if _1.children && _1.total_size <= LIMIT }.sum { _1.total_size }
+
+# 2nd puzzle
+best_match = root.find_all { _1.children }.sort_by { _1.total_size }.find {
+  AVAILABLE - (root.total_size - _1.total_size) >= NEEDED
+}.first
+
+puts best_match.total_size
